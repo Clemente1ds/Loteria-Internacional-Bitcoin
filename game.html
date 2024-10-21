@@ -95,14 +95,14 @@
     <!-- end header inner -->
     <!-- end header -->
     <!--  service -->
-      <div class="text-center">
-        <h1>Pulsa space para empezar</h1>
-        <h3>para saltar pulsa space y esquivar a los enemigos. Si chocas 2 veces pierdes</h3>
-      </div>
+
     <div class="container" style="margin-top: 50px;">
         <canvas id="gameCanvas" width="600" height="200"></canvas>
         <div class="score" id="scoreDisplay">Puntuación: 0</div>
         <div class="message" id="startMessage">Presiona la barra espaciadora para comenzar</div>
+    </div>
+    <div class="text-center">
+      <h3>Pulsa space para empezar y saltar. Esquiva a los enemigos, si chocas 2 veces pierdes</h3>
     </div>
     <!-- end service -->
     <!--  footer -->
@@ -115,19 +115,20 @@
             const loader = document.querySelector('.loader_bg');
             loader.style.display = 'none'; // Oculta el loader
         };
-
+    
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreDisplay = document.getElementById('scoreDisplay');
         const startMessage = document.getElementById('startMessage');
-        let dino = { x: 50, y: 150, radius: 10, dy: 0, gravity: 0.2, jump: -10 }; // Ajustes de gravedad y salto
+        let dino = { x: 50, y: 150, radius: 10, dy: 0, gravity: 0.2, jump: -10 };
         let obstacles = [];
         let score = 0;
-        let speed = 2; // Velocidad inicial más lenta
-        let increaseSpeedInterval = 40000; // Aumenta la velocidad cada 40 segundos
-        let speedIncrement = 0.2; // Incremento de velocidad más gradual
+        let speed = 2; // Velocidad inicial
         let gameStarted = false;
-
+    
+        // Intervalo para incrementar la velocidad
+        let speedInterval;
+    
         function drawDino() {
             ctx.fillStyle = 'green';
             ctx.beginPath();
@@ -135,19 +136,19 @@
             ctx.fill();
             ctx.closePath();
         }
-
+    
         function createObstacle() {
             let height = Math.random() * 30 + 20;
             obstacles.push({ x: canvas.width, y: 160 - height, width: 20, height });
         }
-
+    
         function drawObstacles() {
             ctx.fillStyle = 'brown';
             for (let obstacle of obstacles) {
                 ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             }
         }
-
+    
         function updateObstacles() {
             for (let obstacle of obstacles) {
                 obstacle.x -= speed;
@@ -155,79 +156,76 @@
             if (obstacles.length > 0 && obstacles[0].x < -20) {
                 obstacles.shift();
                 score++;
-                scoreDisplay.textContent = "Puntuación: " + score; // Actualiza la puntuación en la pantalla
+                scoreDisplay.textContent = "Puntuación: " + score;
             }
         }
-
+    
         function detectCollision() {
             for (let obstacle of obstacles) {
-                // Mejora en la detección de colisiones (se amplía el margen de error)
                 if (dino.x < obstacle.x + obstacle.width + dino.radius && 
                     dino.x + dino.radius * 2 > obstacle.x && 
                     dino.y < obstacle.y + obstacle.height + dino.radius && 
                     dino.y + dino.radius * 2 > obstacle.y) {
-                    // Muestra la puntuación en la esquina y recarga el juego
                     scoreDisplay.textContent = "¡Game Over! Puntuación: " + score;
-                    setTimeout(() => document.location.reload(), 2000); // Recarga después de 2 segundos
+                    clearInterval(speedInterval); // Detener incremento de velocidad
+                    setTimeout(() => document.location.reload(), 2000);
                 }
             }
         }
-
+    
         function jump() {
             if (dino.y === 150) {
                 dino.dy = dino.jump;
             }
         }
-
+    
         function startGame() {
             gameStarted = true;
-            startMessage.style.display = 'none'; // Oculta el mensaje de inicio
+            startMessage.style.display = 'none';
             score = 0;
             obstacles = [];
-            speed = 2; // Reinicia la velocidad a su valor inicial
-            scoreDisplay.textContent = "Puntuación: " + score; // Reinicia la puntuación
+            speed = 2; // Reinicia la velocidad
+            scoreDisplay.textContent = "Puntuación: " + score;
+    
+            // Inicia un intervalo para aumentar la velocidad cada 5 segundos
+            speedInterval = setInterval(() => {
+                speed = (speed * 1.1);
+            }, 5000);
+    
             update();
         }
-
+    
         function update() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            dino.dy += dino.gravity; // Aplica gravedad
+            dino.dy += dino.gravity;
             dino.y += dino.dy;
-
-            // Asegurarse de que el dino no caiga más allá del suelo
+    
             if (dino.y > 150) {
                 dino.y = 150;
                 dino.dy = 0;
             }
-
+    
             drawDino();
             drawObstacles();
             updateObstacles();
             detectCollision();
-
-            // Aumentar la velocidad del juego gradualmente
-            if (gameStarted && score % 5 === 0) { // Cada 5 puntos, aumenta la velocidad
-                setTimeout(() => {
-                    speed += speedIncrement; // Incrementa la velocidad
-                }, increaseSpeedInterval);
-            }
-
+    
             requestAnimationFrame(update);
         }
-
+    
         document.addEventListener('keydown', function(event) {
             if (event.code === 'Space') {
                 if (!gameStarted) {
-                    startGame(); // Comienza el juego al pulsar la barra espaciadora
+                    startGame();
                 } else {
-                    jump(); // Salta si el juego ya ha comenzado
+                    jump();
                 }
             }
         });
-
-        // Crear obstáculos a intervalos regulares
+    
         setInterval(createObstacle, 2000);
     </script>
+    
     <!-- bootstrap js -->
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/jquery.mCustomScrollbar.concat.min.js"></script>
