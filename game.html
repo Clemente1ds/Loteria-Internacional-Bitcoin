@@ -143,10 +143,10 @@
     <div class="container" style="margin-top: 50px;">
         <canvas id="gameCanvas" width="600" height="200"></canvas>
         <div class="score" id="scoreDisplay">Puntuación: 0</div>
-        <div class="message" id="startMessage">Presiona la barra espaciadora para comenzar</div>
+        <div class="message" id="startMessage">Presiona la barra espaciadora o toca para comenzar</div>
     </div>
     <div class="text-center">
-      <h3>Pulsa space para empezar y saltar.</h3>
+      <h3>Pulsa space o toca la pantalla para empezar y saltar.</h3>
       <h3>Esquiva a los enemigos, si chocas 2 veces pierdes</h3>
     </div>
     <!-- end service -->
@@ -160,7 +160,7 @@
             const loader = document.querySelector('.loader_bg');
             loader.style.display = 'none'; // Oculta el loader
         };
-    
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreDisplay = document.getElementById('scoreDisplay');
@@ -170,10 +170,10 @@
         let score = 0;
         let speed = 2; // Velocidad inicial
         let gameStarted = false;
-    
+
         // Intervalo para incrementar la velocidad
         let speedInterval;
-    
+
         function drawDino() {
             ctx.fillStyle = 'green';
             ctx.beginPath();
@@ -181,19 +181,19 @@
             ctx.fill();
             ctx.closePath();
         }
-    
+
         function createObstacle() {
             let height = Math.random() * 30 + 20;
             obstacles.push({ x: canvas.width, y: 160 - height, width: 20, height });
         }
-    
+
         function drawObstacles() {
             ctx.fillStyle = 'brown';
             for (let obstacle of obstacles) {
                 ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             }
         }
-    
+
         function updateObstacles() {
             for (let obstacle of obstacles) {
                 obstacle.x -= speed;
@@ -204,7 +204,7 @@
                 scoreDisplay.textContent = "Puntuación: " + score;
             }
         }
-    
+
         function detectCollision() {
             for (let obstacle of obstacles) {
                 if (dino.x < obstacle.x + obstacle.width + dino.radius && 
@@ -217,13 +217,13 @@
                 }
             }
         }
-    
+
         function jump() {
             if (dino.y === 150) {
                 dino.dy = dino.jump;
             }
         }
-    
+
         function startGame() {
             gameStarted = true;
             startMessage.style.display = 'none';
@@ -231,33 +231,33 @@
             obstacles = [];
             speed = 2; // Reinicia la velocidad
             scoreDisplay.textContent = "Puntuación: " + score;
-    
+
             // Inicia un intervalo para aumentar la velocidad cada 5 segundos
             speedInterval = setInterval(() => {
                 speed = (speed * 1.1);
             }, 5000);
-    
+
             update();
         }
-    
+
         function update() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             dino.dy += dino.gravity;
             dino.y += dino.dy;
-    
+
             if (dino.y > 150) {
                 dino.y = 150;
                 dino.dy = 0;
             }
-    
+
             drawDino();
             drawObstacles();
             updateObstacles();
             detectCollision();
-    
+
             requestAnimationFrame(update);
         }
-    
+
         document.addEventListener('keydown', function(event) {
             if (event.code === 'Space') {
                 if (!gameStarted) {
@@ -267,8 +267,19 @@
                 }
             }
         });
-    
+
+        // Agregar evento para manejar el toque en la pantalla
+        canvas.addEventListener('touchstart', function(event) {
+            event.preventDefault(); // Evita el comportamiento predeterminado
+            if (!gameStarted) {
+                startGame();
+            } else {
+                jump();
+            }
+        });
+
         setInterval(createObstacle, 2000);
+
     </script>
     
     <!-- bootstrap js -->
