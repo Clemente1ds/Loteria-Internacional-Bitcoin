@@ -173,7 +173,7 @@
         }
 
         function sendGameOverData() {
-            fetch('http://127.0.0.1:5000/add_score', {  // Cambiado a /add_score
+            fetch('https://clementeurzua.pythonanywhere.com/add_score', {  // Cambiado a /add_score
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ wallet: walletAddress, score })
