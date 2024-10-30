@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Loteria Internacional Bitcoin</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/style.css">
@@ -15,7 +15,7 @@
     <style>
         /* Estilos generales */
         body { margin: 0; overflow: hidden; }
-        #gameCanvas { background: #f7f7f7; display: block; margin: auto; max-width: 600px; }
+        #gameCanvas { background: #f7f7f7; display: block; margin: auto; max-width: 100%; height: auto; }
         .score { position: absolute; top: 10px; right: 10px; font-size: 20px; color: black; }
         .message { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 30px; color: black; display: none; }
 
@@ -27,13 +27,11 @@
             justify-content: center; align-items: center;
             flex-direction: column; color: white;
             z-index: 1000;
-            padding: 20px;
-            box-sizing: border-box;
         }
 
         #walletOverlay input[type="text"] {
             padding: 10px; font-size: 16px; margin-bottom: 10px;
-            width: 80%; max-width: 400px; text-align: center;
+            width: 80%; max-width: 380px; text-align: center;
             border-radius: 50px;
         }
 
@@ -42,19 +40,6 @@
             background-color: #4CAF50; color: white;
             border: none; cursor: pointer;
             border-radius: 50px;
-        }
-
-        /* Ajustes responsivos para pantallas pequeñas */
-        @media (max-width: 600px) {
-            #walletOverlay input[type="text"] {
-                width: 90%; font-size: 14px;
-            }
-            #walletOverlay button {
-                padding: 8px 16px; font-size: 14px;
-            }
-            .message {
-                font-size: 20px;
-            }
         }
     </style>
 </head>
@@ -106,7 +91,7 @@
         </div>
     </header>
     <div id="walletOverlay">
-        <input type="text" id="walletInput" placeholder="Ingresa tu direccion de wallet Bitcoin">
+        <input type="text" id="walletInput" placeholder="Ingresa tu dirección de wallet Bitcoin">
         <button onclick="saveWalletAddress()">Guardar</button>
     </div>
     <div class="container" style="margin-top: 50px;">
@@ -120,7 +105,6 @@
         <h4><b style="text-decoration: underline;">El puntaje más alto gana el premio millonario</b></h4>
     </div>
 
-    <!-- Dinosaur game script -->
     <script>
         let walletAddress = null;
 
@@ -162,7 +146,7 @@
         function updateObstacles() {
             for (let obstacle of obstacles) {
                 obstacle.x -= speed;
-                ctx.fillStyle = 'red'; // Puedes cambiar el color
+                ctx.fillStyle = 'red';
                 ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             }
             if (obstacles.length > 0 && obstacles[0].x < -20) {
@@ -171,7 +155,6 @@
                 scoreDisplay.textContent = "Puntuación: " + score;
             }
         }
-
 
         function detectCollision() {
             for (let obstacle of obstacles) {
@@ -200,7 +183,6 @@
             });
         }
 
-
         function jump() {
             if (dino.y === 150) {
                 dino.dy = dino.jump;
@@ -219,18 +201,16 @@
         }
 
         function update() {
-            if (gameOver) return; // Detiene la ejecución si el juego ha terminado
+            if (gameOver) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             dino.dy += dino.gravity;
             dino.y += dino.dy;
-
             if (dino.y > 150) dino.y = 150;
             drawDino();
             updateObstacles();
             detectCollision();
             requestAnimationFrame(update);
         }
-
 
         document.addEventListener('keydown', function(event) {
             if (event.code === 'Space') {
