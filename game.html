@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Loteria Internacional Bitcoin</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="icon" href="images/logo.png" type="image/gif" />
+    <link rel="stylesheet" href="css/jquery.mCustomScrollbar.min.css">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" media="screen">
+    <style>
+        /* Estilos generales */
+        body { margin: 0; overflow: hidden; }
+        #gameCanvas { background: #f7f7f7; display: block; margin: auto; max-width: 600px; }
+        .score { position: absolute; top: 10px; right: 10px; font-size: 20px; color: black; }
+        .message { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 30px; color: black; display: none; }
+
+        /* Pantalla de entrada de dirección de wallet */
+        #walletOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9); display: flex;
+            justify-content: center; align-items: center;
+            flex-direction: column; color: white;
+            z-index: 1000;
+        }
+
+        #walletOverlay input[type="text"] {
+            padding: 10px; font-size: 16px; margin-bottom: 10px;
+            width: 380px; text-align: center;
+            border-radius: 50px;
+        }
+
+        #walletOverlay button {
+            padding: 10px 20px; font-size: 16px;
+            background-color: #4CAF50; color: white;
+            border: none; cursor: pointer;
+            border-radius: 50px;
+        }
+    </style>
+</head>
+<body class="main-layout in_page">
+    <header>
+        <div class="header">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12 col-sm-3 col logo_section">
+                        <div class="full">
+                            <div class="center-desk">
+                                <div class="logo">
+                                    <a href="index.html"><img src="images/logo.png" alt="#" width="120"/></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-10 offset-md-1">
+                        <nav class="navigation navbar navbar-expand-md navbar-dark ">
+                            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample04" aria-controls="navbarsExample04" aria-expanded="false" aria-label="Toggle navigation">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                            <div class="collapse navbar-collapse" id="navbarsExample04">
+                                <ul class="navbar-nav mr-auto">
+                                    <li class="nav-item active">
+                                        <a class="nav-link" href="index.html">Home</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="index.html#about">About</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="service.html">Jugar</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="https://www.instagram.com/loteria.internacional.bitcoin/">Instagram</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="https://www.facebook.com/profile.php?id=61566983713398&locale=es_LA"> Facebook </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="contact.html">Tik Tok</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div id="walletOverlay">
+        <input type="text" id="walletInput" placeholder="Ingresa tu direccion de wallet Bitcoin">
+        <button onclick="saveWalletAddress()">Guardar</button>
+    </div>
+    <div class="container" style="margin-top: 50px;">
+        <canvas id="gameCanvas" width="600" height="200"></canvas>
+        <div class="score" id="scoreDisplay">Puntuación: 0</div>
+        <div class="message" id="startMessage">Presiona la barra espaciadora o toca para comenzar</div>
+    </div>
+    <br>
+    <div class="text-center">
+        <h6>Presiona Space o toca para saltar. Si chocas 3 veces pierdes</h6>
+        <h4><b style="text-decoration: underline;">El puntaje más alto gana el premio millonario</b></h4>
+    </div>
+
+    <!-- Dinosaur game script -->
+    <script>
+        let walletAddress = null;
+
+        function saveWalletAddress() {
+            walletAddress = document.getElementById("walletInput").value;
+            if (walletAddress) {
+                document.getElementById("walletOverlay").style.display = "none";
+            } else {
+                alert("Por favor, ingresa una dirección de wallet válida.");
+            }
+        }
+
+        // Variables y funciones del juego
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const startMessage = document.getElementById('startMessage');
+        let dino = { x: 50, y: 150, radius: 10, dy: 0, gravity: 0.2, jump: -10 };
+        let obstacles = [];
+        let score = 0;
+        let speed = 2;
+        let gameStarted = false;
+        let collisionCount = 0;
+        let gameOver = false;
+
+        function drawDino() {
+            ctx.fillStyle = 'green';
+            ctx.beginPath();
+            ctx.arc(dino.x + dino.radius, dino.y + dino.radius, dino.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function createObstacle() {
+            let height = Math.random() * 30 + 20;
+            obstacles.push({ x: canvas.width, y: 160 - height, width: 20, height });
+        }
+
+        function updateObstacles() {
+            for (let obstacle of obstacles) {
+                obstacle.x -= speed;
+                ctx.fillStyle = 'red'; // Puedes cambiar el color
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            }
+            if (obstacles.length > 0 && obstacles[0].x < -20) {
+                obstacles.shift();
+                score++;
+                scoreDisplay.textContent = "Puntuación: " + score;
+            }
+        }
+
+
+        function detectCollision() {
+            for (let obstacle of obstacles) {
+                if (dino.x < obstacle.x + obstacle.width && dino.x + dino.radius > obstacle.x &&
+                    dino.y < obstacle.y + obstacle.height && dino.y + dino.radius > obstacle.y) {
+                    collisionCount++;
+                    if (collisionCount >= 3) {
+                        gameOver = true;
+                        scoreDisplay.textContent = "¡Game Over! Puntuación: " + score;
+                        sendGameOverData();
+                    }
+                }
+            }
+        }
+
+        function sendGameOverData() {
+            fetch('http://127.0.0.1:5000/add_score', {  // Cambiado a /add_score
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ wallet: walletAddress, score })
+            }).then(() => {
+                setTimeout(() => document.location.reload(), 2000);
+            }).catch(() => {
+                alert("Error enviando los datos");
+                document.location.reload();
+            });
+        }
+
+
+        function jump() {
+            if (dino.y === 150) {
+                dino.dy = dino.jump;
+            }
+        }
+
+        function startGame() {
+            gameStarted = true;
+            startMessage.style.display = 'none';
+            score = 0;
+            obstacles = [];
+            speed = 2;
+            collisionCount = 0;
+            scoreDisplay.textContent = "Puntuación: " + score;
+            update();
+        }
+
+        function update() {
+            if (gameOver) return; // Detiene la ejecución si el juego ha terminado
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            dino.dy += dino.gravity;
+            dino.y += dino.dy;
+
+            if (dino.y > 150) dino.y = 150;
+            drawDino();
+            updateObstacles();
+            detectCollision();
+            requestAnimationFrame(update);
+        }
+
+
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                if (!gameStarted) startGame();
+                else jump();
+            }
+        });
+
+        canvas.addEventListener('touchstart', function(event) {
+            event.preventDefault();
+            if (!gameStarted) startGame();
+            else jump();
+        });
+
+        setInterval(createObstacle, 2000);
+    </script>
+</body>
+</html>
