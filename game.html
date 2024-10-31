@@ -106,126 +106,135 @@
     </div>
 
     <script>
-        let walletAddress = null;
+let walletAddress = null;
 
-        function saveWalletAddress() {
-            walletAddress = document.getElementById("walletInput").value;
-            if (walletAddress) {
-                document.getElementById("walletOverlay").style.display = "none";
-            } else {
-                alert("Por favor, ingresa una dirección de wallet válida.");
+function saveWalletAddress() {
+    walletAddress = document.getElementById("walletInput").value;
+    if (walletAddress) {
+        document.getElementById("walletOverlay").style.display = "none";
+    } else {
+        alert("Por favor, ingresa una dirección de wallet válida.");
+    }
+}
+
+// Variables y funciones del juego
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const scoreDisplay = document.getElementById('scoreDisplay');
+const startMessage = document.getElementById('startMessage');
+let dino = { x: 50, y: 150, radius: 10, dy: 0, gravity: 0.2, jump: -10 };
+let obstacles = [];
+let score = 0;
+let speed = 2;
+let gameStarted = false;
+let collisionCount = 0;
+let gameOver = false;
+
+function drawDino() {
+    ctx.fillStyle = 'green';
+    ctx.beginPath();
+    ctx.arc(dino.x + dino.radius, dino.y + dino.radius, dino.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.closePath();
+}
+
+function createObstacle() {
+    let height = Math.random() * 30 + 20;
+    obstacles.push({ x: canvas.width, y: 160 - height, width: 20, height });
+}
+
+function updateObstacles() {
+    for (let obstacle of obstacles) {
+        obstacle.x -= speed;
+        ctx.fillStyle = 'red';
+        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+    }
+    if (obstacles.length > 0 && obstacles[0].x < -20) {
+        obstacles.shift();
+        score++;
+        scoreDisplay.textContent = "Puntuación: " + score;
+    }
+}
+
+function detectCollision() {
+    for (let obstacle of obstacles) {
+        if (dino.x < obstacle.x + obstacle.width && dino.x + dino.radius > obstacle.x &&
+            dino.y < obstacle.y + obstacle.height && dino.y + dino.radius > obstacle.y) {
+            collisionCount++;
+            if (collisionCount >= 3) {
+                gameOver = true;
+                scoreDisplay.textContent = "¡Game Over! Puntuación: " + score;
+                sendGameOverData();
             }
         }
+    }
+}
 
-        // Variables y funciones del juego
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreDisplay = document.getElementById('scoreDisplay');
-        const startMessage = document.getElementById('startMessage');
-        let dino = { x: 50, y: 150, radius: 10, dy: 0, gravity: 0.2, jump: -10 };
-        let obstacles = [];
-        let score = 0;
-        let speed = 2;
-        let gameStarted = false;
-        let collisionCount = 0;
-        let gameOver = false;
+function sendGameOverData() {
+    fetch('https://clementeurzua.pythonanywhere.com/add_score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: walletAddress, score })
+    }).then(() => {
+        setTimeout(() => document.location.reload(), 2000);
+    }).catch(() => {
+        alert("Error enviando los datos");
+        document.location.reload();
+    });
+}
 
-        function drawDino() {
-            ctx.fillStyle = 'green';
-            ctx.beginPath();
-            ctx.arc(dino.x + dino.radius, dino.y + dino.radius, dino.radius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.closePath();
-        }
+function jump() {
+    if (dino.y === 150) {
+        dino.dy = dino.jump;
+    }
+}
 
-        function createObstacle() {
-            let height = Math.random() * 30 + 20;
-            obstacles.push({ x: canvas.width, y: 160 - height, width: 20, height });
-        }
+function startGame() {
+    gameStarted = true;
+    startMessage.style.display = 'none';
+    score = 0;
+    obstacles = [];
+    speed = 2;
+    collisionCount = 0;
+    scoreDisplay.textContent = "Puntuación: " + score;
+    update();
+    increaseSpeed(); // Llama a la función para aumentar la velocidad
+}
 
-        function updateObstacles() {
-            for (let obstacle of obstacles) {
-                obstacle.x -= speed;
-                ctx.fillStyle = 'red';
-                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-            }
-            if (obstacles.length > 0 && obstacles[0].x < -20) {
-                obstacles.shift();
-                score++;
-                scoreDisplay.textContent = "Puntuación: " + score;
-            }
-        }
+function update() {
+    if (gameOver) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    dino.dy += dino.gravity;
+    dino.y += dino.dy;
+    if (dino.y > 150) dino.y = 150;
+    drawDino();
+    updateObstacles();
+    detectCollision();
+    requestAnimationFrame(update);
+}
 
-        function detectCollision() {
-            for (let obstacle of obstacles) {
-                if (dino.x < obstacle.x + obstacle.width && dino.x + dino.radius > obstacle.x &&
-                    dino.y < obstacle.y + obstacle.height && dino.y + dino.radius > obstacle.y) {
-                    collisionCount++;
-                    if (collisionCount >= 3) {
-                        gameOver = true;
-                        scoreDisplay.textContent = "¡Game Over! Puntuación: " + score;
-                        sendGameOverData();
-                    }
-                }
-            }
-        }
+// Función para aumentar la velocidad cada 5 segundos
+function increaseSpeed() {
+    setInterval(() => {
+        speed *= 1.1; // Aumenta la velocidad en un 10%
+    }, 5000);
+}
 
-        function sendGameOverData() {
-            fetch('https://clementeurzua.pythonanywhere.com/add_score', {  // Cambiado a /add_score
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ wallet: walletAddress, score })
-            }).then(() => {
-                setTimeout(() => document.location.reload(), 2000);
-            }).catch(() => {
-                alert("Error enviando los datos");
-                document.location.reload();
-            });
-        }
+document.addEventListener('keydown', function(event) {
+    if (event.code === 'Space') {
+        if (!gameStarted) startGame();
+        else jump();
+    }
+});
 
-        function jump() {
-            if (dino.y === 150) {
-                dino.dy = dino.jump;
-            }
-        }
+canvas.addEventListener('touchstart', function(event) {
+    event.preventDefault();
+    if (!gameStarted) startGame();
+    else jump();
+});
 
-        function startGame() {
-            gameStarted = true;
-            startMessage.style.display = 'none';
-            score = 0;
-            obstacles = [];
-            speed = 2;
-            collisionCount = 0;
-            scoreDisplay.textContent = "Puntuación: " + score;
-            update();
-        }
+setInterval(createObstacle, 2000);
 
-        function update() {
-            if (gameOver) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            dino.dy += dino.gravity;
-            dino.y += dino.dy;
-            if (dino.y > 150) dino.y = 150;
-            drawDino();
-            updateObstacles();
-            detectCollision();
-            requestAnimationFrame(update);
-        }
-
-        document.addEventListener('keydown', function(event) {
-            if (event.code === 'Space') {
-                if (!gameStarted) startGame();
-                else jump();
-            }
-        });
-
-        canvas.addEventListener('touchstart', function(event) {
-            event.preventDefault();
-            if (!gameStarted) startGame();
-            else jump();
-        });
-
-        setInterval(createObstacle, 2000);
     </script>
 </body>
 </html>
