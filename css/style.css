@@ -1128,3 +1128,7 @@ ul.link_menu li a:hover {
 
 
 /** endinner page css **/
+
+.in_page .header {
+     border-bottom: #3fe43d solid 2px;
+}
